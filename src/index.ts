@@ -12,59 +12,42 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-async function configureServer() {
-  const server = createServer(app);
+// Log environment
+const googleCredsPath = path.join(process.cwd(), 'google-credentials.json');
+console.log('Google Cloud Credentials File available:', fs.existsSync(googleCredsPath));
+console.log('Google API Key available (AIza...):', !!process.env.GOOGLE_API_KEY);
+console.log('OpenAI API Key available:', !!process.env.OPENAI_API_KEY);
 
-  // Log environment
-  const googleCredsPath = path.join(process.cwd(), 'google-credentials.json');
-  console.log('Google Cloud Credentials File available:', fs.existsSync(googleCredsPath));
-  console.log('Google API Key available (AIza...):', !!process.env.GOOGLE_API_KEY);
-  console.log('OpenAI API Key available:', !!process.env.OPENAI_API_KEY);
+// Middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
-  // Middleware
-  app.use(express.json({ limit: '10mb' }));
-  app.use(express.urlencoded({ limit: '10mb', extended: true }));
+// API routes - always register regardless of environment
+app.use("/api", analyzeRouter);
 
-  // API routes
-  // Mount both with and without /api prefix to be safe on Vercel
-  app.use("/api", analyzeRouter);
-  app.use("/", (req, res, next) => {
-    if (req.url.startsWith('/analyze')) {
-      return analyzeRouter(req, res, next);
-    }
-    next();
-  });
+// Health check
+app.get("/api/health", (_req, res) => {
+  res.json({ status: "ok", env: process.env.NODE_ENV });
+});
 
-  // Serve static files from dist in production (only if not on Vercel)
-  const isVercel = process.env.VERCEL === '1';
+// Serve static files only in local dev (Vercel handles static files itself)
+const isVercel = !!process.env.VERCEL;
+if (!isVercel) {
   const staticPath = path.resolve(__dirname, "..", "dist");
-
-  // Serve static files if not on Vercel (Vercel handles static via vercel.json rewrites)
-  if (!isVercel && fs.existsSync(staticPath)) {
+  if (fs.existsSync(staticPath)) {
     app.use(express.static(staticPath));
     app.get("*", (_req, res) => {
       res.sendFile(path.join(staticPath, "index.html"));
     });
-  } else {
-    // Basic health check for API
-    app.get("/api/health", (_req, res) => {
-      res.json({ status: "ok", env: process.env.NODE_ENV, isVercel });
-    });
   }
 
-  return server;
+  // Start local server
+  const port = process.env.PORT || 3000;
+  const server = createServer(app);
+  server.listen(port, () => {
+    console.log(`Server running locally on http://localhost:${port}/`);
+  });
 }
 
-// For local development
-if (process.env.NODE_ENV !== 'production') {
-  configureServer().then(server => {
-    const port = process.env.PORT || 3000;
-    server.listen(port, () => {
-      console.log(`Server running locally on http://localhost:${port}/`);
-    });
-  }).catch(console.error);
-}
-
-// Important: export the app for Vercel
+// Export for Vercel serverless
 export default app;
-
