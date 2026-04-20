@@ -10,8 +10,9 @@ import analyzeRouter from "./routes/analyze";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-async function startServer() {
-  const app = express();
+const app = express();
+
+async function configureServer() {
   const server = createServer(app);
 
   // Log environment
@@ -24,14 +25,14 @@ async function startServer() {
   app.use(express.json({ limit: '10mb' }));
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
+  // API routes
+  app.use("/api", analyzeRouter);
+
   // Serve static files from dist/public in production
   const staticPath =
     process.env.NODE_ENV === "production"
       ? path.resolve(__dirname, "public")
-      : path.resolve(__dirname, "..", "dist", "public");
-
-  // API routes
-  app.use("/api", analyzeRouter);
+      : path.resolve(__dirname, "..", "dist"); // Vercel often flattens this
 
   // Serve static files if the directory exists
   if (fs.existsSync(staticPath)) {
@@ -47,11 +48,19 @@ async function startServer() {
     });
   }
 
-  const port = process.env.PORT || 3000;
-
-  server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
-  });
+  return server;
 }
 
-startServer().catch(console.error);
+// For local development
+if (process.env.NODE_ENV !== 'production') {
+  configureServer().then(server => {
+    const port = process.env.PORT || 3000;
+    server.listen(port, () => {
+      console.log(`Server running locally on http://localhost:${port}/`);
+    });
+  }).catch(console.error);
+}
+
+// Important: export the app for Vercel
+export default app;
+
