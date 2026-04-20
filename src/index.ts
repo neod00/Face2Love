@@ -26,25 +26,29 @@ async function configureServer() {
   app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
   // API routes
+  // Mount both with and without /api prefix to be safe on Vercel
   app.use("/api", analyzeRouter);
+  app.use("/", (req, res, next) => {
+    if (req.url.startsWith('/analyze')) {
+      return analyzeRouter(req, res, next);
+    }
+    next();
+  });
 
-  // Serve static files from dist/public in production
-  const staticPath =
-    process.env.NODE_ENV === "production"
-      ? path.resolve(__dirname, "public")
-      : path.resolve(__dirname, "..", "dist"); // Vercel often flattens this
+  // Serve static files from dist in production (only if not on Vercel)
+  const isVercel = process.env.VERCEL === '1';
+  const staticPath = path.resolve(__dirname, "..", "dist");
 
-  // Serve static files if the directory exists
-  if (fs.existsSync(staticPath)) {
+  // Serve static files if not on Vercel (Vercel handles static via vercel.json rewrites)
+  if (!isVercel && fs.existsSync(staticPath)) {
     app.use(express.static(staticPath));
     app.get("*", (_req, res) => {
       res.sendFile(path.join(staticPath, "index.html"));
     });
   } else {
-    console.log(`Static path not found: ${staticPath}. Skipping static file serving.`);
-    // Basic health check for API in dev
-    app.get("/", (_req, res) => {
-      res.json({ message: "Face2Love API is running", env: process.env.NODE_ENV });
+    // Basic health check for API
+    app.get("/api/health", (_req, res) => {
+      res.json({ status: "ok", env: process.env.NODE_ENV, isVercel });
     });
   }
 
