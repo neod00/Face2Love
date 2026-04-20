@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 import { ChevronRight } from 'lucide-react';
 
 interface AgePreferenceProps {

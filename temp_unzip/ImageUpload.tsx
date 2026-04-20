@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 import { Upload, AlertCircle, Loader2 } from 'lucide-react';
-import { detectFaceInImage } from '../lib/faceDetection';
+import { detectFaceInImage } from '@/lib/faceDetection';
 
 interface ImageUploadProps {
   onImageSelect: (file: File, preview: string) => void;

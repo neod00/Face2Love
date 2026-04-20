@@ -69,12 +69,11 @@ router.post('/analyze', upload.single('image'), async (req: AnalyzeRequest, res:
     // Step 3: Generate partner personality
     const partnerPersonality = generatePartnerPersonality(userPersonality);
 
-    // Step 4: Generate AI text content (Parallel)
-    const [summary, compatibility, reasoning] = await Promise.all([
-      generatePartnerSummary(userPersonality, partnerPersonality, language as string),
-      generateCompatibilityExplanation(userPersonality, partnerPersonality, language as string),
-      generateFaceReasoning(userPersonality, partnerPersonality, language as string),
-    ]);
+    // Step 4: Calculate compatibility
+    const { explanation: compatibilityExplanation } = calculateCompatibility(
+      userPersonality,
+      partnerPersonality
+    );
 
     // Step 5: Generate image prompt (with detected gender and ethnicity)
     console.log('User detected - Gender:', facialTraits.gender, ', Ethnicity:', facialTraits.ethnicity);
@@ -83,11 +82,17 @@ router.post('/analyze', upload.single('image'), async (req: AnalyzeRequest, res:
     // Step 6: Generate partner face image
     const partnerImageUrl = await generatePartnerFace(imagePrompt);
 
-    // Step 7: Return result
+    // Step 7: Generate AI text content (parallel)
+    const [summary, reasoning] = await Promise.all([
+      generatePartnerSummary(userPersonality, partnerPersonality, language as string),
+      generateFaceReasoning(userPersonality, partnerPersonality, language as string),
+    ]);
+
+    // Step 8: Return result
     const response: AnalyzeResponse = {
       partnerImage: partnerImageUrl,
       summary,
-      compatibility,
+      compatibility: compatibilityExplanation,
       personality: partnerPersonality,
       reasoning,
     };

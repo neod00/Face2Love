@@ -1,11 +1,8 @@
-import { config } from "dotenv";
-config();
 import express from "express";
 import { createServer } from "http";
 import path from "path";
-import * as fs from "fs";
 import { fileURLToPath } from "url";
-import analyzeRouter from "./routes/analyze";
+import analyzeRouter from "./routes/analyze.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,9 +12,7 @@ async function startServer() {
   const server = createServer(app);
 
   // Log environment
-  const googleCredsPath = path.join(process.cwd(), 'google-credentials.json');
-  console.log('Google Cloud Credentials File available:', fs.existsSync(googleCredsPath));
-  console.log('Google API Key available (AIza...):', !!process.env.GOOGLE_API_KEY);
+  console.log('Google Cloud API Key available:', !!process.env.GOOGLE_CLOUD_API_KEY);
   console.log('OpenAI API Key available:', !!process.env.OPENAI_API_KEY);
 
   // Middleware
@@ -33,19 +28,12 @@ async function startServer() {
   // API routes
   app.use("/api", analyzeRouter);
 
-  // Serve static files if the directory exists
-  if (fs.existsSync(staticPath)) {
-    app.use(express.static(staticPath));
-    app.get("*", (_req, res) => {
-      res.sendFile(path.join(staticPath, "index.html"));
-    });
-  } else {
-    console.log(`Static path not found: ${staticPath}. Skipping static file serving.`);
-    // Basic health check for API in dev
-    app.get("/", (_req, res) => {
-      res.json({ message: "Face2Love API is running", env: process.env.NODE_ENV });
-    });
-  }
+  app.use(express.static(staticPath));
+
+  // Handle client-side routing - serve index.html for all routes
+  app.get("*", (_req, res) => {
+    res.sendFile(path.join(staticPath, "index.html"));
+  });
 
   const port = process.env.PORT || 3000;
 

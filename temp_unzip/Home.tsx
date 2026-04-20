@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import LanguageSelector from '../components/LanguageSelector';
-import ImageUpload from '../components/ImageUpload';
-import AgePreference from '../components/AgePreference';
-import LoadingSteps from '../components/LoadingSteps';
-import ResultPage from '../components/ResultPage';
-import { Button } from '../components/ui/button';
+import LanguageSelector from '@/components/LanguageSelector';
+import ImageUpload from '@/components/ImageUpload';
+import AgePreference from '@/components/AgePreference';
+import LoadingSteps from '@/components/LoadingSteps';
+import ResultPage from '@/components/ResultPage';
+import { Button } from '@/components/ui/button';
 import { Heart } from 'lucide-react';
 
 type PageState = 'welcome' | 'age_preference' | 'upload' | 'loading' | 'result' | 'error';

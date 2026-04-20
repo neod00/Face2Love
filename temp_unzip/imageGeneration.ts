@@ -1,38 +1,24 @@
 import { OpenAI } from 'openai';
 import { generateImageWithImagen } from './imagenGeneration';
 
-// Lazy initialization - created on first use after dotenv has loaded
-let _openai: OpenAI | null = null;
-function getOpenAI(): OpenAI {
-  if (!_openai) {
-    _openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      baseURL: 'https://api.openai.com/v1',
-    });
-  }
-  return _openai;
-}
+// Initialize OpenAI client with explicit configuration
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: 'https://api.openai.com/v1',
+});
 
 /**
  * Generate partner face image using Google Vertex AI Imagen 3
  */
 export async function generatePartnerFace(imagePrompt: string): Promise<string> {
   try {
-    console.log('Attempting to generate image with Imagen 3...');
+    console.log('Generating image with Imagen 3...');
     const imagenUrl = await generateImageWithImagen(imagePrompt);
     console.log('Image generated successfully with Imagen 3');
     return imagenUrl;
   } catch (error) {
-    console.warn('Imagen 3 failed, falling back to DALL-E 3:', error instanceof Error ? error.message : error);
-    try {
-      const dalleUrl = await generateWithDALLE(imagePrompt);
-      // DALL-E returns a temporary URL, download it to base64 for persistence
-      console.log('Downloading DALL-E image to base64...');
-      return await downloadImageAsBase64(dalleUrl);
-    } catch (dalleError) {
-      console.error('All image generation methods failed:', dalleError);
-      throw new Error('Failed to generate partner face image with both AI providers');
-    }
+    console.error('Error generating partner face with Imagen 3:', error);
+    throw new Error('Failed to generate partner face image with Imagen 3');
   }
 }
 
@@ -44,7 +30,7 @@ async function generateWithDALLE(imagePrompt: string): Promise<string> {
     console.log('Generating image with DALL-E 3...');
     console.log('API Key configured:', !!process.env.OPENAI_API_KEY);
     
-    const response = await getOpenAI().images.generate({
+    const response = await openai.images.generate({
       model: 'dall-e-3',
       prompt: imagePrompt,
       n: 1,

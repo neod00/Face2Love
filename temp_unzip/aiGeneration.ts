@@ -1,17 +1,12 @@
 import { OpenAI } from 'openai';
 import { PersonalityTraits } from './faceAnalysis';
 
-// Lazy initialization - created on first use after dotenv has loaded
-let _openai: OpenAI | null = null;
-function getOpenAI(): OpenAI {
-  if (!_openai) {
-    _openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-      baseURL: 'https://api.openai.com/v1',
-    });
-  }
-  return _openai;
-}
+// Initialize OpenAI client with explicit configuration
+// Bypass Manus proxy to use official OpenAI API
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+  baseURL: 'https://api.openai.com/v1',
+});
 
 /**
  * Generate compatibility explanation using OpenAI
@@ -47,28 +42,22 @@ Partner Personality:
 Please respond in ${languagePrompt}. Keep it romantic, positive, and concise.`;
 
   try {
-    const response = await getOpenAI().chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
-        {
-          role: 'system',
-          content: `You are a romantic compatibility expert. You must respond ONLY in ${languagePrompt}. Use a natural, warm, and romantic tone.`,
-        },
         {
           role: 'user',
           content: prompt,
         },
       ],
-      max_tokens: 400,
+      max_tokens: 150,
       temperature: 0.7,
     });
 
-    const languageCode = language === 'ko' ? 'ko' : language === 'ja' ? 'ja' : language === 'zh' ? 'zh' : 'en';
-    return response.choices[0]?.message?.content?.trim() || 
-      (languageCode === 'ko' ? '두 분은 정말 환상적인 궁합입니다! 서로의 성격이 완벽하게 조화를 이루네요.' : 'You two are meant to be together!');
+    return response.choices[0]?.message?.content || 'You two are meant to be together!';
   } catch (error) {
     console.error('Error generating compatibility explanation:', error);
-    return language === 'ko' ? '두 분은 서로의 부족한 점을 채워주는 아름다운 관계가 될 것입니다.' : 'Your personalities complement each other beautifully.';
+    return 'Your personalities complement each other beautifully.';
   }
 }
 
@@ -97,27 +86,22 @@ Focus on how facial features might reflect personality (e.g., warm eyes for agre
 Please respond in ${languagePrompt}. Keep it brief and engaging.`;
 
   try {
-    const response = await getOpenAI().chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
-        {
-          role: 'system',
-          content: `You are a facial analysis expert. You must respond ONLY in ${languagePrompt}. Complete your thoughts and do not cut off sentences.`,
-        },
         {
           role: 'user',
           content: prompt,
         },
       ],
-      max_tokens: 800,
+      max_tokens: 150,
       temperature: 0.7,
     });
 
-    return response.choices[0]?.message?.content?.trim() || 
-      (language === 'ko' ? '이 얼굴은 당신의 성격적 특성과 가장 조화로운 균형을 이루는 모습입니다.' : 'This face reflects the perfect balance of personality traits.');
+    return response.choices[0]?.message?.content || 'This face reflects the perfect balance of personality traits.';
   } catch (error) {
     console.error('Error generating face reasoning:', error);
-    return language === 'ko' ? '이목구비의 특징들이 파트너의 따뜻하고 견고한 성격을 잘 표현하고 있습니다.' : 'The facial features perfectly express the personality traits.';
+    return 'The facial features perfectly express the personality traits.';
   }
 }
 
@@ -199,26 +183,21 @@ export async function generatePartnerSummary(
 Please respond in ${languagePrompt}. Make it poetic and romantic.`;
 
   try {
-    const response = await getOpenAI().chat.completions.create({
+    const response = await openai.chat.completions.create({
       model: 'gpt-3.5-turbo',
       messages: [
-        {
-          role: 'system',
-          content: `You are a poetic soul. You must respond ONLY in ${languagePrompt}.`,
-        },
         {
           role: 'user',
           content: prompt,
         },
       ],
-      max_tokens: 150,
+      max_tokens: 50,
       temperature: 0.8,
     });
 
-    return response.choices[0]?.message?.content?.trim() || 
-      (language === 'ko' ? '당신만을 기다려온, 당신의 영혼을 채워줄 완벽한 인연입니다.' : 'Your perfect match, waiting to be discovered.');
+    return response.choices[0]?.message?.content || 'Your perfect match, waiting to be discovered.';
   } catch (error) {
     console.error('Error generating partner summary:', error);
-    return language === 'ko' ? '당신을 위한 단 하나의 인연.' : 'Your ideal romantic partner.';
+    return 'Your ideal romantic partner.';
   }
 }

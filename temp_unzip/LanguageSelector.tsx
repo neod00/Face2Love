@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 import { Globe } from 'lucide-react';
 
 interface LanguageSelectorProps {
