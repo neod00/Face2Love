@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai';
-import { generateImageWithImagen } from './imagenGeneration';
+import { generateImageWithImagen } from './imagenGeneration.js';
 
 // Lazy initialization - created on first use after dotenv has loaded
 let _openai: OpenAI | null = null;

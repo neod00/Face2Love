@@ -5,7 +5,7 @@ import { createServer } from "http";
 import path from "path";
 import * as fs from "fs";
 import { fileURLToPath } from "url";
-import analyzeRouter from "./routes/analyze";
+import analyzeRouter from "./routes/analyze.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

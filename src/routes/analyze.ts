@@ -5,14 +5,14 @@ import {
   inferPersonality,
   generatePartnerPersonality,
   calculateCompatibility,
-} from '../utils/faceAnalysis';
+} from '../utils/faceAnalysis.js';
 import {
   generateCompatibilityExplanation,
   generateFaceReasoning,
   generateImagePrompt,
   generatePartnerSummary,
-} from '../utils/aiGeneration';
-import { generatePartnerFace } from '../utils/imageGeneration';
+} from '../utils/aiGeneration.js';
+import { generatePartnerFace } from '../utils/imageGeneration.js';
 
 const router = Router();
 

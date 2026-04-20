@@ -1,5 +1,5 @@
 import { OpenAI } from 'openai';
-import { PersonalityTraits } from './faceAnalysis';
+import { PersonalityTraits } from './faceAnalysis.js';
 
 // Lazy initialization - created on first use after dotenv has loaded
 let _openai: OpenAI | null = null;
